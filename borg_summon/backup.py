@@ -30,11 +30,11 @@ def main(global_config, sources):
 
             if 'log_level' in remote_config:
                 level = remote_config['log_level']
-                if level in ('critical', 'error', 'warning', 'info', 'verbose'):
+                if level in ('critical', 'error', 'warning', 'info', 'debug', 'verbose'):
                     cmd.append('--' + level)
                 else:
                     raise ValueError('"%s" is not a legal log level. Expected "critical",\
-                            "error", "warning", "info" or "verbose".')
+                            "error", "warning", "info", "debug" or "verbose".')
 
             if 'umask' in remote_config:
                 cmd.append('--umask')
