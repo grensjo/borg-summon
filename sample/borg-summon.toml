@@ -1,0 +1,86 @@
+### Config file for borgsummon
+
+# This is a TOML v0.4.0 document
+# See https://github.com/toml-lang/toml/blob/v0.4.0/README.md
+
+
+# You can import other config files, for example to put configuration
+#  for different backup sources in separate files.
+include = ['~/.borg-summon/config.d/*', '~/.borg-summon/secrets.toml']
+
+alert_hook = '~/bin/panic.sh'
+log_file = '/var/log/borg-summon.log'
+ssh_key = '~/.ssh/id_rsa'
+log_level = "warning"
+remote_path = /usr/bin/borg
+exclude_file = "root"
+remote_borg_path = "borg"
+
+
+[remotes]
+    [remotes.local]
+        where = "/path/to/parent/of/repo/"
+        umask = "0007"
+
+    [remotes.server]
+        where = "borg@server.example.com:/path/to/parent/of/repo"
+
+[backup]
+    archive_name = "auto_{datetime}"
+    progress = true
+    stats = true
+    compression = "lz4"
+    exclude_caches = true
+    one_file_system = true
+
+    [backup.sources]
+
+        [backup.sources.home]
+        paths = ["~", "/etc/"]
+        sudo = true
+        repo_name = "home" # Defaults to be the same as the source name
+        passphrase = "wowmuchsecret" # Should be kept in separate file with
+                                     # strict reading permissions and included
+
+        [backup.sources.online]
+        paths = ["/home/onlinebackup"]
+        sudo_user = "onlinebackup"
+        remote_list = ["local"] # Defaults to all
+
+        [backup.sources.database]
+        sudo_user = "postgres"
+        pre_backup_hook = "dbdump-create.sh" # Run as sudo-user before first `borg create`
+        paths = ["/tmp/db-backup/dbdump.sql"]
+        post_backup_hook = "dbdump-remove.sh" # Run as sudo-user after last `borg create`
+
+        [backup.sources.lvm_example]
+        sudo = true
+        paths = ["/mnt/snapshot"]
+        pre_hook = "create-and-mount-snapshot.sh"
+        post_hook = "unmount-and-remove-snapshot.sh"
+
+
+[maintain]
+
+    # Should be specified in an included file, with strict read permissions.
+    repos = [
+        { path = "/path/to/repo1", passphrase = "ajfdioefigojgsroi" },
+        { path = "/path/to/repo2" },
+        { path = "borg@server.example.com:/path/to/repo", passphrase = "ajfdioefigojgsroi" },
+    ]
+
+    [prune]
+        keep_within = 48
+        keep_daily = 14
+        keep_weekly = 8
+        keep_monthly = 24
+        keep_yearly = 100
+        prefixes = ["auto"]
+        state = true
+
+
+    [check]
+        repository_only = false
+        archives_only = false
+        check_last = 0
+        # prefixes = []
