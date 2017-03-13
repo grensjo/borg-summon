@@ -26,16 +26,15 @@ def main(global_config, sources):
             remote_config = util.get_prioritized_recursive_dict(global_config,
                     ['backup', 'sources', name], ['remotes', remote])
 
-            # TODO: hooks
             cmd = ['create']
-
 
             if 'log_level' in remote_config:
                 level = remote_config['log_level']
                 if level in ('critical', 'error', 'warning', 'info', 'verbose'):
                     cmd.append('--' + level)
                 else:
-                    raise Exception # TODO
+                    raise ValueError('"%s" is not a legal log level. Expected "critical",\
+                            "error", "warning", "info" or "verbose".')
 
             if 'umask' in remote_config:
                 cmd.append('--umask')
