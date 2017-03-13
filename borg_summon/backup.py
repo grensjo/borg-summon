@@ -76,6 +76,7 @@ def main(global_config, sources):
             env = {}
             if 'passphrase' in remote_config:
                 env['BORG_PASSPHRASE'] = remote_config['passphrase']
+                env['BORG_DISPLAY_PASSPHRASE'] = "n"
 
             print("Backing up", name, "to", remote)
             if remote_config.get('sudo', False):
