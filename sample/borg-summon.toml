@@ -10,11 +10,10 @@ include = ['~/.borg-summon/config.d/*', '~/.borg-summon/secrets.toml']
 
 alert_hook = '~/bin/panic.sh'
 log_file = '/var/log/borg-summon.log'
-ssh_key = '~/.ssh/id_rsa'
+ssh_command = 'ssh -i ~/.ssh/id_rsa'
 log_level = "warning"
-remote_path = /usr/bin/borg
-exclude_file = "root"
-remote_borg_path = "borg"
+exclude_file = "~/.borg-summon/exclude.txt"
+remote_borg_path = "/usr/bin/borg"
 
 
 [remotes]
@@ -38,7 +37,6 @@ remote_borg_path = "borg"
         [backup.sources.home]
         paths = ["~", "/etc/"]
         sudo = true
-        repo_name = "home" # Defaults to be the same as the source name
         passphrase = "wowmuchsecret" # Should be kept in separate file with
                                      # strict reading permissions and included
 
