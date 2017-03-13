@@ -1,3 +1,4 @@
+import click
 import glob
 import sys
 import sh
@@ -6,11 +7,14 @@ from datetime import datetime
 from . import util
 
 
-def main(global_config, source_names):
-    if len(source_names) == 0:
-        source_names = global_config['backup']['sources'].keys()
+@click.command()
+@click.argument('sources', nargs=-1)
+@click.pass_obj
+def main(global_config, sources):
+    if len(sources) == 0:
+        sources = global_config['backup']['sources'].keys()
 
-    for name in source_names:
+    for name in sources:
         source_config = util.get_recursive_dict(global_config, ['backup', 'sources', name]) 
         
         if 'remote_list' in source_config:
