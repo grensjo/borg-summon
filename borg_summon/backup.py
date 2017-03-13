@@ -67,13 +67,21 @@ def main(global_config, sources):
             date = str(datetime.now().isoformat(timespec='seconds'))
             repo = remote_config['where'] + name
             archive = repo + "::" + remote_config['archive_name'].format(datetime=date)
-
             cmd.append(archive)
-            cmd.extend(remote_config['paths'])
 
+            # Expand ~ to home directory in all arguments.
             cmd = list(map(os.path.expanduser, cmd))
+
+            # Add all paths to cmd, with ~ expanded and shell-like globbing (using * wildcards)
+            for path in remote_config['paths']:
+                cmd.extend(glob.glob(os.path.expanduser(path)))
             
+            # Dict of environment variables to use.
             env = {}
+
+            if 'ssh_command' in remote_config:
+                env['BORG_RSH'] = remote_config['ssh_command']
+
             if 'passphrase' in remote_config:
                 env['BORG_PASSPHRASE'] = remote_config['passphrase']
                 env['BORG_DISPLAY_PASSPHRASE'] = "n"
