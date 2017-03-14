@@ -45,7 +45,7 @@ stats = true
         [backup.sources.online]
             paths = ["/home/onlinebackup"]
             sudo_user = "onlinebackup"
-            remote_list = ["local"] # Defaults to all
+            backup_remotes = ["local"] # Defaults to all
 
         [backup.sources.database]
             sudo_user = "postgres"
@@ -56,19 +56,13 @@ stats = true
         [backup.sources.lvm_example]
             sudo = true
             paths = ["/mnt/snapshot"]
-            pre_hook = "create-and-mount-snapshot.sh"
-            post_hook = "unmount-and-remove-snapshot.sh"
+            pre_backup_hook = "create-and-mount-snapshot.sh"
+            post_backup_hook = "unmount-and-remove-snapshot.sh"
+            repo_name = "foo"
 
 
 
 [maintain]
-    # Should be specified in an included file, with strict read permissions.
-    repos = [
-        { remote = "local", repo_name = "home", passphrase = "ajfdioefigojgsroi" },
-        { remote = "server", repo_name = "database"},
-        { repo_path = "borg@server.example.com:/path/to/repo", passphrase = "ajfdioefigojgsroi" },
-    ]
-
     [maintain.prune]
         keep_within = 48
         keep_daily = 14
@@ -84,3 +78,30 @@ stats = true
         archives_only = false
         check_last = 0
         # prefixes = []
+
+    [maintain.extract]
+        repository_only = false
+        archives_only = false
+        check_last = 0
+
+    [[maintain.repos]]
+        remote = "local"
+        repo_name = "home"
+
+    [[maintain.repos]]
+        remote = "local"
+        repo_name = "database"
+        enable_check = false
+
+    [[maintain.repos]]
+        remote = "server"
+        repo_name = "home"
+        enable_prune = false
+        enable_extract = false
+
+
+# Should be placed in an included file, with strict read permissions.
+[secret.local.home]
+    passphrase = "this_is_a_secret"
+[secret.server.home]
+    passphrase = "this_is_a_secret"
