@@ -14,7 +14,8 @@ ssh_command = 'ssh -i ~/.ssh/id_rsa'
 log_level = "warning"
 exclude_file = "~/.borg-summon/exclude.txt"
 remote_borg_path = "/usr/bin/borg"
-
+progress = true
+stats = true
 
 [remotes]
     [remotes.local]
@@ -25,49 +26,50 @@ remote_borg_path = "/usr/bin/borg"
         where = "borg@server.example.com:/path/to/parent/of/repo"
 
 [backup]
-    archive_name = "auto_{datetime}"
-    progress = true
-    stats = true
-    compression = "lz4"
-    exclude_caches = true
-    one_file_system = true
+    [backup.init]
+        encryption = "repokey"
+        append_only = "false"
+        
+    [backup.create]
+        archive_name_template = "auto_{datetime}"
+        compression = "lz4"
+        exclude_caches = true
+        one_file_system = true
 
     [backup.sources]
-
         [backup.sources.home]
-        paths = ["~", "/etc/"]
-        sudo = true
-        passphrase = "wowmuchsecret" # Should be kept in separate file with
-                                     # strict reading permissions and included
+            paths = ["~", "/etc/"]
+            sudo = true
+            passphrase = "wowmuchsecret" # Should be kept in separate file with
 
         [backup.sources.online]
-        paths = ["/home/onlinebackup"]
-        sudo_user = "onlinebackup"
-        remote_list = ["local"] # Defaults to all
+            paths = ["/home/onlinebackup"]
+            sudo_user = "onlinebackup"
+            remote_list = ["local"] # Defaults to all
 
         [backup.sources.database]
-        sudo_user = "postgres"
-        pre_backup_hook = "dbdump-create.sh" # Run as sudo-user before first `borg create`
-        paths = ["/tmp/db-backup/dbdump.sql"]
-        post_backup_hook = "dbdump-remove.sh" # Run as sudo-user after last `borg create`
+            sudo_user = "postgres"
+            pre_backup_hook = "dbdump-create.sh" # Run as sudo-user before first `borg create`
+            paths = ["/tmp/db-backup/dbdump.sql"]
+            post_backup_hook = "dbdump-remove.sh" # Run as sudo-user after last `borg create`
 
         [backup.sources.lvm_example]
-        sudo = true
-        paths = ["/mnt/snapshot"]
-        pre_hook = "create-and-mount-snapshot.sh"
-        post_hook = "unmount-and-remove-snapshot.sh"
+            sudo = true
+            paths = ["/mnt/snapshot"]
+            pre_hook = "create-and-mount-snapshot.sh"
+            post_hook = "unmount-and-remove-snapshot.sh"
+
 
 
 [maintain]
-
     # Should be specified in an included file, with strict read permissions.
     repos = [
-        { path = "/path/to/repo1", passphrase = "ajfdioefigojgsroi" },
-        { path = "/path/to/repo2" },
-        { path = "borg@server.example.com:/path/to/repo", passphrase = "ajfdioefigojgsroi" },
+        { remote = "local", repo_name = "home", passphrase = "ajfdioefigojgsroi" },
+        { remote = "server", repo_name = "database"},
+        { repo_path = "borg@server.example.com:/path/to/repo", passphrase = "ajfdioefigojgsroi" },
     ]
 
-    [prune]
+    [maintain.prune]
         keep_within = 48
         keep_daily = 14
         keep_weekly = 8
@@ -77,7 +79,7 @@ remote_borg_path = "/usr/bin/borg"
         state = true
 
 
-    [check]
+    [maintain.check]
         repository_only = false
         archives_only = false
         check_last = 0
