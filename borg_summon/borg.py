@@ -34,8 +34,29 @@ def get_common_args_and_env(config, remote, repo_name):
 
     return args, env
 
-def init(config, repo):
-    pass
+def init(config, remote, repo_name):
+    args, env = get_common_args_and_env(config, remote, repo_name)
+    
+    if 'encryption' in config:
+        encryption = config['encryption']
+        if level in ('none', 'keyfile', 'repokey'):
+            args.append('--encryption')
+            args.append(level)
+        else:
+            raise ValueError('"%s" is not a valid encryption mode. Expected "none",\
+                    "keyfile" or "repokey".')
+
+    if config.get('append_only', False):
+        args.append('--append-only')
+
+    where = config['where']
+    args.append(os.path.expanduser(where + repo_name))
+
+    if config.get('sudo', False):
+        with sh.contrib.sudo:
+            sh.borg.init(*args, _fg=True, _env=env)
+    else:
+        sh.borg.init(*args, _fg=True, _env=env)
 
 def create(config, remote, repo_name, archive):
     args, env = get_common_args_and_env(config, remote, repo_name)
