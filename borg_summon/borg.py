@@ -39,9 +39,9 @@ def init(config, remote, repo_name):
     
     if 'encryption' in config:
         encryption = config['encryption']
-        if level in ('none', 'keyfile', 'repokey'):
+        if encryption in ('none', 'keyfile', 'repokey'):
             args.append('--encryption')
-            args.append(level)
+            args.append(encryption)
         else:
             raise ValueError('"%s" is not a valid encryption mode. Expected "none",\
                     "keyfile" or "repokey".')
