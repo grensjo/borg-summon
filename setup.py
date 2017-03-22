@@ -2,8 +2,8 @@ from setuptools import setup
 
 setup(name='borg-summon',
     version='0.1',
-    description='A wrapper for the backup program borg',
-    url='http://github.com/grensjo/borg-summon',
+    description='A work-in-progress wrapper for automating BorgBackup use',
+    url='https://github.com/grensjo/borg-summon',
     author='Anton Grensjö',
     author_email='anton@grensjo.se',
     license='MIT',
