@@ -1,6 +1,7 @@
 import sh
 import glob
 import os.path
+from contextlib import ExitStack
 from . import util
 
 def get_common_args_and_env(config, remote, repo_name):
@@ -34,6 +35,17 @@ def get_common_args_and_env(config, remote, repo_name):
 
     return args, env
 
+def execution_context(config):
+    if config.get('sudo', False):
+        user = config.get('sudo_user', None)
+        if user is not None:
+            return sh.contrib.sudo(user=user, _with=True)
+        else:
+            return sh.contrib.sudo
+    else:
+        # If the sudo setting is not true, return a dummy context manager.
+        return ExitStack()
+
 def init(config, remote, repo_name):
     args, env = get_common_args_and_env(config, remote, repo_name)
     
@@ -52,10 +64,7 @@ def init(config, remote, repo_name):
     where = config['where']
     args.append(os.path.expanduser(where + repo_name))
 
-    if config.get('sudo', False):
-        with sh.contrib.sudo:
-            sh.borg.init(*args, _fg=True, _env=env)
-    else:
+    with execution_context(config):
         sh.borg.init(*args, _fg=True, _env=env)
 
 def create(config, remote, repo_name, archive):
@@ -88,10 +97,7 @@ def create(config, remote, repo_name, archive):
     for path in config['paths']:
         args.extend(glob.glob(os.path.expanduser(path)))
 
-    if config.get('sudo', False):
-        with sh.contrib.sudo:
-            sh.borg.create(*args, _fg=True, _env=env)
-    else:
+    with execution_context(config):
         sh.borg.create(*args, _fg=True, _env=env)
 
 
