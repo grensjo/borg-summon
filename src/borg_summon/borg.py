@@ -4,8 +4,25 @@ import os.path
 from contextlib import ExitStack
 from . import util
 
+class Error(Exception):
+    """Base class for exceptions in this module."""
+    pass
+
+class InvalidConfigError(Error):
+    """Exception raised when there is a critical configuration error.
+
+    Attributes:
+        message -- explanation of the error
+    """
+
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
 def get_common_args_and_env(config, remote, repo_name):
-    args = []
+    args = {}
     env = {}
 
     if 'ssh_command' in config:
@@ -20,22 +37,34 @@ def get_common_args_and_env(config, remote, repo_name):
     if 'log_level' in config:
         level = config['log_level']
         if level in ('critical', 'error', 'warning', 'info', 'debug', 'verbose'):
-            args.append('--' + level)
+            args[level] = True
         else:
             raise ValueError('"%s" is not a legal log level. Expected "critical",\
                     "error", "warning", "info", "debug" or "verbose".')
 
     if 'umask' in config:
-        args.append('--umask')
-        args.append(config['umask'])
+        args['umask'] = config['umask']
 
     if 'remote_borg_path' in config:
-        args.append('--remote-path')
-        args.append(config['remote_borg_path'])
+        args['remote-path'] = config['remote_borg_path']
 
+    if 'location' not in config:
+        raise InvalidConfigError('No location specified for remote "%s".' % remote)
+        
     return args, env
 
 def execution_context(config):
+    """Return a suitable context manager for calling borg. If the sudo setting is
+    true, it will be the sudo context manager from the sh package. If the sudo_user
+    setting is also set, that user will be passed to sudo using the --user option.
+
+    If the sudo setting is not set to true, a dummy context manager which does not
+    do anything will be returned.
+
+    Arguments:
+        config -- a dictionary-like configuration object which will be used to
+                  select which context manager will be returned
+    """
     if config.get('sudo', False):
         user = config.get('sudo_user', None)
         if user is not None:
@@ -47,58 +76,76 @@ def execution_context(config):
         return ExitStack()
 
 def init(config, remote, repo_name):
+    """Call borg to initialize a repository. Any relevant options specified in the
+    config object will be passed to borg.
+
+    Arguments:
+        config -- a dictionary-like object with the needed configuration for the
+                 source and remote involved
+        remote -- the name of the remote
+        repo_name -- the name of the repository to initialize
+    """
     args, env = get_common_args_and_env(config, remote, repo_name)
     
     if 'encryption' in config:
         encryption = config['encryption']
         if encryption in ('none', 'keyfile', 'repokey'):
-            args.append('--encryption')
-            args.append(encryption)
+            args['encryption'] = encryption
         else:
             raise ValueError('"%s" is not a valid encryption mode. Expected "none",\
                     "keyfile" or "repokey".')
 
     if config.get('append_only', False):
-        args.append('--append-only')
+        args['append-only'] = True
 
-    where = config['where']
-    args.append(os.path.expanduser(where + repo_name))
+    location = config['location']
+    repo_path = os.path.expanduser(location + repo_name)
 
     with execution_context(config):
-        sh.borg.init(*args, _fg=True, _env=env)
+        sh.borg.init(repo_path, **args, _fg=True, _env=env)
 
 def create(config, remote, repo_name, archive):
-    args, env = get_common_args_and_env(config, remote, repo_name)
+    """Call borg to create an archive (perform a backup). Any relevant options specified
+    in the config object will be passed to borg.
+
+    Arguments:
+        config -- a dictionary-like object with the needed configuration for the
+                  source and remote involved
+        remote -- the name of the remote to backup to
+        repo_name -- the name of the repository to initialize
+        archive -- the name of the archive to create (this needs to be unique within
+                   the repository
+    """
+    args = []
+    kwargs, env = get_common_args_and_env(config, remote, repo_name)
 
     if config.get('stats', False):
-        args.append('--stats')
+        kwargs['stats'] = True
 
     if config.get('progress', False):
-        args.append('--progress')
+        kwargs['progress'] = True
 
     if 'exclude_file' in config:
-        args.append('--exclude-from')
-        args.append(os.path.expanduser(config['exclude_file']))
+        kwargs['exclude-from'] = os.path.expanduser(config['exclude_file'])
 
     if config.get('exclude_caches', False):
-        args.append('--exclude-caches')
+        kwargs['exclude-caches'] = True
 
     if config.get('one_file_system', False):
-        args.append('--one-file-system')
+        kwargs['one-file-system'] = True
 
     if 'compression' in config:
-        args.append('--compression')
-        args.append(config['compression'])
-    
-    where = config['where']
-    args.append(os.path.expanduser(where + repo_name) + "::" + archive)
+        kwargs['compression'] = config['compression']
+
+    location = config['location']
+    args.append(os.path.expanduser(location + repo_name) + "::" + archive)
 
     # Add all paths to cmd, with ~ expanded and shell-like globbing (using * wildcards)
     for path in config['paths']:
         args.extend(glob.glob(os.path.expanduser(path)))
 
     with execution_context(config):
-        sh.borg.create(*args, _fg=True, _env=env)
+        sh.borg.create(*args, **kwargs, _fg=True, _env=env)
 
 
 

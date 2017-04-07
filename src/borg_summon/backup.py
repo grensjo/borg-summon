@@ -5,7 +5,7 @@ import sh
 import os.path
 from datetime import datetime
 from collections import ChainMap
-from . import borg
+from . import borg, util
 
 
 @click.command()
@@ -15,9 +15,10 @@ from . import borg
 @click.pass_obj
 def main(config, source, remote, create):
     if create:
-        command_config = ChainMap(config['backup']['create'], config) #TODO defaults
+
+        command_config = ChainMap(util.lookup(config, ['backup', 'create'], {}), config)
     else:
-        command_config = ChainMap(config['backup']['init'], config) #TODO defaults
+        command_config = ChainMap(util.lookup(config, ['backup', 'init'], {}), config)
 
     source_list = config['backup']['sources'].keys()
 
@@ -41,7 +42,7 @@ def main(config, source, remote, create):
 
             if create:
                 date = str(datetime.now().isoformat(timespec='seconds'))
-                archive = remote_config['archive_name'].format(datetime=date)
+                archive = remote_config.get('archive_name', 'auto_{datetime}').format(datetime=date)
 
                 print("Backing up the source", source_name, "to the remote", remote_name)
                 borg.create(remote_config, remote_name, repo_name, archive)

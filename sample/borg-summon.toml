@@ -19,11 +19,11 @@ stats = true
 
 [remotes]
     [remotes.local]
-        where = "/path/to/parent/of/repo/"
+        location = "/path/to/parent/of/repo/"
         umask = "0007"
 
     [remotes.server]
-        where = "borg@server.example.com:/path/to/parent/of/repo"
+        location = "borg@server.example.com:/path/to/parent/of/repo"
 
 [backup]
     [backup.init]
