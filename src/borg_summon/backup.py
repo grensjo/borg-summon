@@ -41,7 +41,7 @@ def main(config, source, remote, create):
             remote_config = source_config.new_child(config['remotes'][remote_name])
 
             if create:
-                date = str(datetime.now().isoformat(timespec='seconds'))
+                date = str(datetime.now().isoformat())
                 archive = remote_config.get('archive_name', 'auto_{datetime}').format(datetime=date)
 
                 print("Backing up the source", source_name, "to the remote", remote_name)

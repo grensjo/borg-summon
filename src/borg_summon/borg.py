@@ -102,7 +102,7 @@ def init(config, remote, repo_name):
     repo_path = os.path.expanduser(location + repo_name)
 
     with execution_context(config):
-        sh.borg.init(repo_path, **args, _fg=True, _env=env)
+        sh.borg.init(repo_path, _fg=True, _env=env, **args)
 
 def create(config, remote, repo_name, archive):
     """Call borg to create an archive (perform a backup). Any relevant options specified
@@ -145,7 +145,7 @@ def create(config, remote, repo_name, archive):
         args.extend(glob.glob(os.path.expanduser(path)))
 
     with execution_context(config):
-        sh.borg.create(*args, **kwargs, _fg=True, _env=env)
+        sh.borg.create(*args, _fg=True, _env=env, **kwargs)
 
 
 
