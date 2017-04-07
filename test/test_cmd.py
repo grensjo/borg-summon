@@ -95,7 +95,7 @@ def test_root_maintain_help():
     result = runner.invoke(command_line.main, ['maintain', '--help'])
     assert result.exit_code == 0
 
-@patch('sh.borg')
+@patch('sh.borg', create=True)
 def test_backup_init_minimal(borg_mock):
     # Set up
     mock_default_config(minimal_config)
@@ -114,7 +114,7 @@ def test_backup_init_minimal(borg_mock):
     assert sh.borg.init.call_count == 4
     assert result.exit_code == 0
 
-@patch('sh.borg')
+@patch('sh.borg', create=True)
 def test_backup_init_maximal(borg_mock):
     # Set up
     mock_default_config(maximal_config)
@@ -143,7 +143,7 @@ def test_backup_init_maximal(borg_mock):
     assert sh.borg.init.call_count == 3
     assert result.exit_code == 0
 
-@patch('sh.borg')
+@patch('sh.borg', create=True)
 def test_backup_create_minimal(borg_mock):
     # Set up
     mock_default_config(minimal_config)
@@ -163,7 +163,7 @@ def test_backup_create_minimal(borg_mock):
     assert sh.borg.create.call_count == 4
     assert result.exit_code == 0
 
-@patch('sh.borg')
+@patch('sh.borg', create=True)
 def test_backup_create_maximal(borg_mock):
     # TODO: test sudo
 
