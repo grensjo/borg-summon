@@ -15,7 +15,6 @@ from . import borg, util
 @click.pass_obj
 def main(config, source, remote, create):
     if create:
-
         command_config = ChainMap(util.lookup(config, ['backup', 'create'], {}), config)
     else:
         command_config = ChainMap(util.lookup(config, ['backup', 'init'], {}), config)

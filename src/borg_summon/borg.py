@@ -150,10 +150,10 @@ def create(config, remote, repo_name, archive):
 
 
 def check(config):
-    pass
+    raise NotImplementedError
 
 def prune(config):
-    pass
+    raise NotImplementedError
 
 def extract(config):
-    pass
+    raise NotImplementedError
