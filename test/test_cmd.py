@@ -68,11 +68,15 @@ maximal_config = {
         'sources': {
             'source_A': {
                 'paths': ['pathA1', 'pathA2'],
+                'pre_create_hook': { 'command': 'pre-create-A.sh', 'sudo': False },
+                'post_create_hook': { 'command': 'post-create-A.sh' },
             },
             'source_B': {
                 'paths': ['pathB1', 'pathB2'],
                 'remote_list': ['remote_b'],
                 'sudo_user': 'user_b',
+                'pre_create_hook': { 'command': 'pre-create-B.sh', 'args': ['--verbose'] },
+                'post_create_hook': { 'command': 'post-create-B.sh', 'sudo_user': 'hook_user' },
             }
         }
     }
@@ -110,6 +114,7 @@ def call_matches(call, args, options, env):
     cargs = list(cargs)
     cargs[1] = cargs[1].decode(DEFAULT_ENCODING)
     cargs[2] = list(map(lambda a: a.decode(DEFAULT_ENCODING), cargs[2]))
+    print("Match?", cargs, args)
 
     if not cargs[0] == os.P_WAIT:
         return False
@@ -259,6 +264,8 @@ def test_backup_create_minimal(borg_mock):
 @mock_path
 @patch('os.spawnve', return_value=0)
 def test_backup_create_maximal(borg_mock):
+    # TODO verify order of hook executions
+
     # Set up
     mock_default_config(maximal_config)
     mock_globbing()
@@ -284,12 +291,19 @@ def test_backup_create_maximal(borg_mock):
         'one-file-system': True,
         'compression': 'lz4',
     }
+
+
+    assert any_call_matches(os.spawnve, ['/path/pre-create-A.sh'], {}, {})
     assert any_call_matches(os.spawnve, ['/path/sudo', '-S', '/path/borg', 'create',
         'remote_location_a/source_A::archive_name', 'pathA1', 'pathA2'], kwargs, env)
     assert any_call_matches(os.spawnve, ['/path/sudo', '-S', '/path/borg', 'create',
         'remote_location_b/source_A::archive_name', 'pathA1', 'pathA2'], kwargs, env)
+    assert any_call_matches(os.spawnve, ['/path/sudo', '-S', '/path/post-create-A.sh'], {}, {})
+
     env['BORG_PASSPHRASE'] = 'passphrase2'
+    assert any_call_matches(os.spawnve, ['/path/sudo', '-S', '-u', 'user_b', '/path/pre-create-B.sh'], {'verbose': True}, {})
     assert any_call_matches(os.spawnve, ['/path/sudo', '-S', '-u', 'user_b', '/path/borg', 'create',
         'remote_location_b/source_B::archive_name', 'pathB1', 'pathB2'], kwargs, env)
-    assert os.spawnve.call_count == 3
+    assert any_call_matches(os.spawnve, ['/path/sudo', '-S', '-u', 'hook_user', '/path/post-create-B.sh'], {}, {})
+    assert os.spawnve.call_count == 7
     assert result.exit_code == 0

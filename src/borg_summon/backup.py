@@ -33,10 +33,17 @@ def main(config, source, remote, create):
         else:
             remote_list = config['remotes'].keys()
 
-        for remote_name in remote_list:
-            if len(remote) > 0 and remote_name not in remote:
-                continue
+        if len(remote) > 0:
+            remote_list = filter(lambda r: r in remote, remote_list)
 
+        if len(remote_list) == 0:
+            continue
+
+        if create and 'pre_create_hook' in source_config:
+            hook_config = source_config.new_child(source_config['pre_create_hook'])
+            borg.hook(hook_config)
+
+        for remote_name in remote_list:
             remote_config = source_config.new_child(config['remotes'][remote_name])
 
             if create:
@@ -49,3 +56,7 @@ def main(config, source, remote, create):
                 print("Initializing the repo", repo_name, "on the remote", remote_name)
                 borg.init(remote_config, remote_name, repo_name)
 
+
+        if create and 'post_create_hook' in source_config:
+            hook_config = source_config.new_child(source_config['post_create_hook'])
+            borg.hook(hook_config)

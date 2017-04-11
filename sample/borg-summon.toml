@@ -48,16 +48,15 @@ stats = true
             backup_remotes = ["local"] # Defaults to all
 
         [backup.sources.database]
-            sudo_user = "postgres"
-            pre_backup_hook = "dbdump-create.sh" # Run as sudo-user before first `borg create`
+            pre_backup_hook = { command = "dbdump-create.sh", sudo = true, sudo_user = "postgres" }
             paths = ["/tmp/db-backup/dbdump.sql"]
-            post_backup_hook = "dbdump-remove.sh" # Run as sudo-user after last `borg create`
+            post_backup_hook = { command = "dbdump-remove.sh" }
 
         [backup.sources.lvm_example]
             sudo = true
             paths = ["/mnt/snapshot"]
-            pre_backup_hook = "create-and-mount-snapshot.sh"
-            post_backup_hook = "unmount-and-remove-snapshot.sh"
+            pre_backup_hook = { command = "create-and-mount-snapshot.sh" }
+            post_backup_hook = { command = "unmount-and-remove-snapshot.sh" }
             repo_name = "foo"
 
 
