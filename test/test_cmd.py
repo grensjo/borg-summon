@@ -129,7 +129,7 @@ def test_backup_init_minimal(borg_mock):
     runner = CliRunner()
 
     # Perform
-    result = runner.invoke(command_line.main, ['backup', '--init'], catch_exceptions=False)
+    result = runner.invoke(command_line.main, ['--config=test.toml', 'backup', '--init'], catch_exceptions=False)
 
     # Assert
     assert any_call_matches(os.spawnve,

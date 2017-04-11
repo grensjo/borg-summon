@@ -4,7 +4,7 @@ from . import config_parser, backup, maintain
 @click.group()
 @click.option('--config', '-c', 'config_path', default=None,
         help='Use the specified config file.',
-        type=click.Path(exists=True, dir_okay=False))
+        type=click.Path())
 @click.pass_context
 def main(ctx, config_path):
     if config_path is None:
