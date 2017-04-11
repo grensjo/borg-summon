@@ -151,8 +151,14 @@ def create(config, remote, repo_name, archive):
     args.append(os.path.expanduser(location + repo_name) + "::" + archive)
 
     # Add all paths to cmd, with ~ expanded and shell-like globbing (using * wildcards)
+    paths = []
     for path in config['paths']:
-        args.extend(glob.glob(os.path.expanduser(path)))
+        paths.extend(glob.glob(os.path.expanduser(path)))
+
+    if len(paths) > 0:
+        args.extend(paths)
+    else:
+        raise InvalidConfigError('There are no existing paths to backup to the repo "%s".' % repo_name)
 
     with execution_context(config):
         sh.borg.create(*args, _fg=True, _env=env, **kwargs)
