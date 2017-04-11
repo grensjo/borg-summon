@@ -22,7 +22,7 @@ def mock_default_config(config_name):
     m.side_effect = itertools.chain([m.return_value], generate_open_empty())
     
     def decorator(func):
-        @patch('borg_summon.config_parser.open', m)
+        @patch('borg_summon.config_parser.open', m, create=True)
         def func_wrapper(*args, **kwargs):
             func(*args, **kwargs)
         return func_wrapper
