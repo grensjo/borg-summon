@@ -1,0 +1,38 @@
+archive_name = "archive_name"
+remote_list = [ "remote_a", "remote_b",]
+sudo = true
+ssh_command = "ssh_command"
+passphrase = "passphrase1"
+log_level = "info"
+umask = "0007"
+remote_borg_path = "remote_borg_path"
+encryption = "repokey"
+append_only = true
+progress = true
+stats = true
+exclude_file = "exclude_file"
+exclude_caches = true
+one_file_system = true
+compression = "lz4"
+
+[remotes]
+    [remotes.remote_a]
+        location = "remote_location_a/"
+    [remotes.remote_b]
+        location = "remote_location_b/"
+
+[backup]
+    [backup.sources]
+        [backup.sources.source_A]
+            paths = [ "pathA1", "pathA2" ]
+            pre_create_hook = { command = "pre-create-A.sh", sudo = false }
+            post_create_hook = { command = "post-create-A.sh" }
+        [backup.sources.source_B]
+            paths = [ "pathB1", "pathB2" ]
+            remote_list = [ "remote_b" ]
+            sudo_user = "user_b"
+            pre_create_hook = { command = "pre-create-B.sh", args = [ "--verbose" ] }
+            post_create_hook = { command = "post-create-B.sh", sudo_user = "hook_user" }
+
+[secret.remote_b.source_B]
+passphrase = "passphrase2"

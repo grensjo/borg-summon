@@ -33,8 +33,10 @@ def merge(target, other):
                 continue
             elif (isinstance(other[key], collections.Sequence) and
                     isinstance(target[key], collections.Sequence)):
-                target[key] += other[key]
-                continue
+                # Strings are sequences, but we no not want to merge them.
+                if not (isinstance(other[key], str) or isinstance(target[key], str)):
+                    target[key] += other[key]
+                    continue
         target[key] = other[key]
 
 
@@ -55,7 +57,6 @@ def get_from_default():
         path = os.path.expanduser(path)
         if os.path.isfile(path):
             config = get_from_file(path, config, visited, [])
-
 
     return config
 

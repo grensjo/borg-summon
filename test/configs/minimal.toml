@@ -1,0 +1,14 @@
+archive_name= 'archive_name'
+
+[remotes]
+    [remotes.remote_a]
+        location = 'remote_location_a/'
+    [remotes.remote_b]
+        location = 'remote_location_b/'
+
+[backup]
+    [backup.sources]
+        [backup.sources.source_A]
+            paths = ['pathA1', 'pathA2']
+        [backup.sources.source_B]
+            paths = ['pathB1', 'pathB2']
