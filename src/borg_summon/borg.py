@@ -68,7 +68,7 @@ def execution_context(config):
     if config.get('sudo', False):
         user = config.get('sudo_user', None)
         if user is not None:
-            return sh.contrib.sudo(user=user, _with=True)
+            return sh.contrib.sudo(u=user, _with=True)
         else:
             return sh.contrib.sudo
     else:
