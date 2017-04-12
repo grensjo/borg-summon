@@ -75,7 +75,7 @@ def execution_context(config):
         # If the sudo setting is not true, return a dummy context manager.
         return ExitStack()
 
-def hook(config):
+def hook(config, args_tail=[]):
     try:
         command = config['command']
     except KeyError:
@@ -83,7 +83,7 @@ def hook(config):
     args = config.get('args', [])
 
     with execution_context(config):
-        return sh.Command(command)(*args, _fg=True, _env={})
+        return sh.Command(command)(*args, *args_tail, _env={}, _fg=True)
 
 def init(config, remote, repo_name):
     """Call borg to initialize a repository. Any relevant options specified in the

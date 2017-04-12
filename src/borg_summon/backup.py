@@ -6,6 +6,7 @@ import os.path
 from datetime import datetime
 from collections import ChainMap
 from . import borg, util
+from .report import ActionSuccess, ActionFailure, report_success, report_failure, send_report
 
 
 @click.command()
@@ -41,7 +42,18 @@ def main(config, source, remote, create):
 
         if create and 'pre_create_hook' in source_config:
             hook_config = source_config.new_child(source_config['pre_create_hook'])
-            borg.hook(hook_config)
+
+            print("\n")
+            print("Running pre-create-hook for source", source_name)
+            try:
+                borg.hook(hook_config)
+                report_success(ActionSuccess('pre-create-hook', (source_name,)))
+            except Exception as e:
+                report_failure(ActionFailure('pre-create-hook', (source_name,), e))
+                for remote_name in remote_list:
+                    report_failure(ActionFailure('create', (source_name, remote_name), 'skipped because of failed pre-create-hook'))
+                report_failure(ActionFailure('post-create-hook', (source_name,), 'skipped because of failed pre-create-hook'))
+                continue
 
         for remote_name in remote_list:
             remote_config = source_config.new_child(config['remotes'][remote_name])
@@ -50,13 +62,29 @@ def main(config, source, remote, create):
                 date = str(datetime.now().isoformat())
                 archive = remote_config.get('archive_name', 'auto_{datetime}').format(datetime=date)
 
+                print("\n")
                 print("Backing up the source", source_name, "to the remote", remote_name)
-                borg.create(remote_config, remote_name, repo_name, archive)
+                try:
+                    borg.create(remote_config, remote_name, repo_name, archive)
+                    report_success(ActionSuccess('create', (source_name, remote_name)))
+                except Exception as e:
+                    report_failure(ActionFailure('create', (source_name, remote_name), e))
             else:
+                print("\n")
                 print("Initializing the repo", repo_name, "on the remote", remote_name)
-                borg.init(remote_config, remote_name, repo_name)
+                try:
+                    borg.init(remote_config, remote_name, repo_name)
+                    report_success(ActionSuccess('init', (source_name, remote_name)))
+                except Exception as e:
+                    report_failure(ActionFailure('init', (source_name, remote_name), e))
 
 
         if create and 'post_create_hook' in source_config:
             hook_config = source_config.new_child(source_config['post_create_hook'])
-            borg.hook(hook_config)
+            print("\n")
+            print("Running post-create-hook for source", source_name)
+            try:
+                borg.hook(hook_config)
+                report_success(ActionSuccess('post_create_hook', (source_name,)))
+            except Exception as e:
+                report_failure(ActionFailure('post-create-hook', (source_name,), e))
