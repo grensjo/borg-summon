@@ -1,4 +1,5 @@
 import collections
+import hashlib
 import os.path
 import glob
 import logging
@@ -72,17 +73,20 @@ def get_from_file(path, config={}, visited=set(), current=[]):
                calls will use a copy
     """
 
-    config = config.copy()
-    current = current.copy()
+    with open(os.path.expanduser(path)) as conffile:
+        config_content = conffile.read()
 
-    if path in current:
+    file_hash = hashlib.sha256(config_content.encode()).digest()
+
+    if file_hash in current:
         raise CyclicIncludeError(path)
-    elif path in visited:
+    elif file_hash in visited:
         logging.warning('The file "%s" was included multiple times, but only the first occurrance was used.' % path)
         return config
 
-    with open(os.path.expanduser(path)) as conffile:
-        new_config = toml.loads(conffile.read())
+    config = config.copy()
+    new_config = toml.loads(config_content)
+    current = current.copy()
 
     if "include" in new_config:
         includes = new_config["include"]
@@ -92,8 +96,8 @@ def get_from_file(path, config={}, visited=set(), current=[]):
 
     merge(config, new_config)
 
-    visited.add(path)
-    current.append(path)
+    visited.add(file_hash)
+    current.append(file_hash)
 
     for include in includes:
         include = os.path.expanduser(include)
