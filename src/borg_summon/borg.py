@@ -39,7 +39,7 @@ def get_common_args_and_env(config, remote, repo_name):
         if level in ('critical', 'error', 'warning', 'info', 'debug', 'verbose'):
             args[level] = True
         else:
-            raise ValueError('"%s" is not a legal log level. Expected "critical",\
+            raise InvalidConfigError('"%s" is not a legal log level. Expected "critical",\
                     "error", "warning", "info", "debug" or "verbose".')
 
     if 'umask' in config:
@@ -102,7 +102,7 @@ def init(config, remote, repo_name):
         if encryption in ('none', 'keyfile', 'repokey'):
             args['encryption'] = encryption
         else:
-            raise ValueError('"%s" is not a valid encryption mode. Expected "none",\
+            raise InvalidConfigError('"%s" is not a valid encryption mode. Expected "none",\
                     "keyfile" or "repokey".')
 
     if config.get('append_only', False):
