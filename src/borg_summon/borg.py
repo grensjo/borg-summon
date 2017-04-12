@@ -152,7 +152,7 @@ def create(config, remote, repo_name, archive):
 
     # Add all paths to cmd, with ~ expanded and shell-like globbing (using * wildcards)
     paths = []
-    for path in config['paths']:
+    for path in config.get('paths', []):
         paths.extend(glob.glob(os.path.expanduser(path)))
 
     if len(paths) > 0:
