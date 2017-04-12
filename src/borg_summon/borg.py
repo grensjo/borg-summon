@@ -80,10 +80,12 @@ def hook(config, args_tail=[]):
         command = config['command']
     except KeyError:
         raise InvalidConfigError('The "command" option is required for hooks.')
+
     args = config.get('args', [])
+    args.extend(args_tail)
 
     with execution_context(config):
-        return sh.Command(command)(*args, *args_tail, _env={}, _fg=True)
+        return sh.Command(command)(*args, _env={}, _fg=True)
 
 def init(config, remote, repo_name):
     """Call borg to initialize a repository. Any relevant options specified in the
