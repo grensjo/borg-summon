@@ -1,4 +1,5 @@
 from unittest.mock import Mock, MagicMock, patch, call, DEFAULT, mock_open
+from .util import mock_globbing, mock_path, mock_multiple_opens
 import toml
 import itertools
 import sh
@@ -15,11 +16,7 @@ DEFAULT_ENCODING = getpreferredencoding() or "utf-8"
 
 def mock_default_config(config_name):
     with open(os.path.join(os.path.dirname(__file__), 'configs', config_name), 'r') as f:
-        m = mock_open(read_data=f.read())
-    def generate_open_empty():
-        while True:
-            yield mock_open(read_data='').return_value
-    m.side_effect = itertools.chain([m.return_value], generate_open_empty())
+        m = mock_multiple_opens(itertools.chain([f.read()], itertools.repeat('')))
     
     def decorator(func):
         @patch('borg_summon.config_parser.open', m, create=True)
@@ -28,26 +25,6 @@ def mock_default_config(config_name):
         return func_wrapper
     return decorator
 
-def mock_globbing():
-    glob.glob = Mock(side_effect = lambda x: [x])
-
-def mock_path(func, path='/path'):
-    isok = lambda *args: True
-    orig_environ = os.environ.copy()
-    def env_get(key, default=None):
-        if key == 'PATH':
-            return path
-        else:
-            return orig_environ.get(key, default)
-
-    @patch('os.environ.get', side_effect=env_get)
-    @patch('os.path.exists', side_effect=isok)
-    @patch('os.access', side_effect=isok)
-    @patch('os.path.isfile', side_effect=isok)
-    def func_wrapper(isfile, access, exists, get, *args, **kwargs):
-        func(*args, **kwargs)
-
-    return func_wrapper
 
 def call_matches(call, args, options, env):
     cname, cargs, ckwargs = call
