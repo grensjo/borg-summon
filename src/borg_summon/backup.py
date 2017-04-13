@@ -9,12 +9,7 @@ from . import borg, util
 from .report import ActionSuccess, ActionFailure, report_success, report_failure, send_report
 
 
-@click.command()
-@click.option('-s', '--source', multiple=True)
-@click.option('-r', '--remote', multiple=True)
-@click.option('--create/--init', default=True)
-@click.pass_obj
-def main(config, source, remote, create):
+def main_inner(config, source, remote, create):
     if create:
         command_config = ChainMap(util.lookup(config, ['backup', 'create'], {}), config)
     else:
@@ -32,10 +27,10 @@ def main(config, source, remote, create):
         if 'remote_list' in source_config:
             remote_list = source_config['remote_list']
         else:
-            remote_list = config['remotes'].keys()
+            remote_list = config.get('remotes', {}).keys()
 
         if len(remote) > 0:
-            remote_list = filter(lambda r: r in remote, remote_list)
+            remote_list = [r for r in remote_list if r in remote]
 
         if len(remote_list) == 0:
             continue
@@ -88,3 +83,11 @@ def main(config, source, remote, create):
                 report_success(ActionSuccess('post_create_hook', (source_name,)))
             except Exception as e:
                 report_failure(ActionFailure('post-create-hook', (source_name,), e))
+
+@click.command()
+@click.option('-s', '--source', multiple=True)
+@click.option('-r', '--remote', multiple=True)
+@click.option('--create/--init', default=True)
+@click.pass_obj
+def main(config, source, remote, create):
+    main_inner(config, source, remote, create)
