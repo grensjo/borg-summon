@@ -9,7 +9,7 @@
 include = ['~/.borg-summon/config.d/*', '~/.borg-summon/secrets.toml']
 
 alert_hook = '~/bin/panic.sh'
-log_file = '/var/log/borg-summon.log'
+log_directory = '/var/log/borg-summon'
 ssh_command = 'ssh -i ~/.ssh/id_rsa'
 log_level = "warning"
 exclude_file = "~/.borg-summon/exclude.txt"

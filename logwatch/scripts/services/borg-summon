@@ -1,0 +1,42 @@
+#!/usr/bin/python3
+
+##########################################################################
+# Logwatch service executable for borg-summon
+# File is to be placed in
+#     /etc/logwatch/scripts/services/borg-summon.conf
+##########################################################################
+
+import sys
+
+actions = {}
+for line in sys.stdin:
+    tokens = line.split('\t')
+    loglevel = tokens[1].strip()
+    logger = tokens[2].strip()
+    action = tokens[3].strip()
+    target = tokens[4].strip()
+    result = tokens[5].strip()
+
+    if logger != 'borg_summon.report':
+        print("incorrect logger", logger)
+        continue
+
+    if action not in actions:
+        actions[action] = {}
+    if target not in actions[action]:
+        actions[action][target] = { 'success': 0, 'failure': 0, 'unknown': 0 }
+
+    if result == 'success':
+        actions[action][target]['success'] += 1
+    elif result == 'failure':
+        actions[action][target]['failure'] += 1
+    else:
+        actions[action][target]['unknown'] += 1
+
+for action in actions:
+    print('----', action, '----')
+    print('Number of targets:', len(actions[action]))
+    for target, data in actions[action].items():
+        print(target, ':\t', 'success: ', data['success'], '\tfailure: ', data['failure'],
+                '\t\tunknown: ', data['unknown'], sep='')
+    print()

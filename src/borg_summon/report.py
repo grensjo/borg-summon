@@ -44,7 +44,7 @@ class ActionSuccess:
         return self.action + "\t" + ",".join(self.target) + "\tsuccess"
 
     def log(self):
-        logging.info(str(self))
+        logger.info(str(self))
 
 class ActionFailure:
     def __init__(self, action, target, error):
@@ -53,7 +53,7 @@ class ActionFailure:
         self.error = error
 
     def __str__(self):
-        return self.action + "\t" + ",".join(self.target) + "\tfail\t" + repr(self.error) 
+        return self.action + "\t" + ",".join(self.target) + "\tfailure\t" + repr(self.error) 
 
     def log(self):
-        logging.error(str(self))
+        logger.error(str(self))

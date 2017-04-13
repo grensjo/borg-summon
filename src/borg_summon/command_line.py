@@ -1,9 +1,12 @@
 import atexit
 import click
 import logging
+logger = logging.getLogger('borg_summon')
+
+import logging.handlers
+import os
 from . import config_parser, backup, maintain, report
 
-logger = logging.getLogger('borg_summon')
 
 @click.group()
 @click.option('--config', '-c', 'config_path', default=None,
@@ -18,11 +21,11 @@ def main(ctx, config_path):
         ctx.obj = config_parser.get_from_file(config_path)
 
     logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(fmt='%(asctime)s\t%(levelname)s\t%(message)s',
+    formatter = logging.Formatter(fmt='%(asctime)s\t%(levelname)s\t%(name)s\t%(message)s',
             datefmt='%Y-%m-%d %H:%M:%S')
 
-    if 'log_file' in ctx.obj:
-        fh = logging.FileHandler(ctx.obj['log_file'])
+    if 'log_directory' in ctx.obj:
+        fh = logging.FileHandler(os.path.join(ctx.obj['log_directory'], 'borg-summon.log'))
         fh.setLevel(logging.INFO)
         fh.setFormatter(formatter)
         logger.addHandler(fh)
