@@ -21,7 +21,7 @@ def main(ctx, config_path):
         ctx.obj = config_parser.get_from_file(config_path)
 
     logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(fmt='%(asctime)s\t%(levelname)s\t%(name)s\t%(message)s',
+    formatter = logging.Formatter(fmt='%(asctime)s \t%(levelname)s\t%(name)s\t%(message)s',
             datefmt='%Y-%m-%d %H:%M:%S')
 
     if 'log_directory' in ctx.obj:
