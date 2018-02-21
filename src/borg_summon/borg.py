@@ -146,6 +146,9 @@ def create(config, remote, repo_name, archive):
     if config.get('one_file_system', False):
         kwargs['one-file-system'] = True
 
+    if config.get('dry_run', False):
+        kwargs['dry-run'] = True
+
     if 'compression' in config:
         kwargs['compression'] = config['compression']
 
@@ -166,11 +169,43 @@ def create(config, remote, repo_name, archive):
         sh.borg.create(*args, _fg=True, _env=env, **kwargs)
 
 
+def prune(config, remote, repo_name, prefix):
+    """Call borg to prune a repository. Any relevant options specified in the
+    config object will be passed to borg.
 
-def check(config):
-    raise NotImplementedError
+    Arguments:
+        config -- a dictionary-like object with the needed configuration for the
+                  repo and remote involved
+        remote -- the name of the remote where the repo is
+        repo_name -- the name of the repository to prune
+    """
+    args = []
+    kwargs, env = get_common_args_and_env(config, remote, repo_name)
 
-def prune(config):
+    if config.get('stats', False):
+        kwargs['stats'] = True
+
+    if prefix is not None:
+        kwargs['prefix'] = prefix
+
+    if config.get('dry_run', False):
+        kwargs['dry-run'] = True
+
+    for attr in ('keep-within', 'keep-secondly', 'keep-minutely',
+            'keep-hourly', 'keep-daily', 'keep-weekly', 'keep-monthly',
+            'keep-yearly'):
+        cfg_attr = attr.replace('-', '_')
+        if cfg_attr in config:
+            kwargs[attr] = config[cfg_attr]
+
+    location = config['location']
+    args.append(os.path.expanduser(location + repo_name))
+
+    with execution_context(config):
+        print("Running borg prune with:", repr(env), repr(args), repr(kwargs))
+        sh.borg.prune(*args, _fg=True, _env=env, **kwargs)
+
+def check(remote_config, remote_name, repo_name, prefix):
     raise NotImplementedError
 
 def extract(config):

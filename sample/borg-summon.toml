@@ -8,7 +8,7 @@
 #  for different backup sources in separate files.
 include = ['~/.borg-summon/config.d/*', '~/.borg-summon/secrets.toml']
 
-alert_hook = '~/bin/panic.sh'
+alert_hook = { command = '~/bin/panic.sh' }
 log_directory = '/var/log/borg-summon'
 ssh_command = 'ssh -i ~/.ssh/id_rsa'
 log_level = "warning"
@@ -23,7 +23,7 @@ stats = true
         umask = "0007"
 
     [remotes.server]
-        location = "borg@server.example.com:/path/to/parent/of/repo"
+        location = "borg@server.example.com:/path/to/parent/of/repo/"
 
 [backup]
     [backup.init]
@@ -63,14 +63,14 @@ stats = true
 
 [maintain]
     [maintain.prune]
-        keep_within = 48
+        keep_within = "2d"
+        # keep_secondly = 42
+        # keep_hourly = 42
         keep_daily = 14
         keep_weekly = 8
         keep_monthly = 24
-        keep_yearly = 100
+        keep_yearly = -1
         prefixes = ["auto"]
-        state = true
-
 
     [maintain.check]
         repository_only = false
@@ -90,7 +90,7 @@ stats = true
     [[maintain.repos]]
         remote = "local"
         repo_name = "database"
-        enable_check = false
+        enable_check = false # defaults to true
 
     [[maintain.repos]]
         remote = "server"
