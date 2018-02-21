@@ -205,8 +205,46 @@ def prune(config, remote, repo_name, prefix):
         print("Running borg prune with:", repr(env), repr(args), repr(kwargs))
         sh.borg.prune(*args, _fg=True, _env=env, **kwargs)
 
-def check(remote_config, remote_name, repo_name, prefix):
-    raise NotImplementedError
+def check(config, remote, repo_name, prefix):
+    """Call borg to check a repository. Any relevant options specified in the
+    config object will be passed to borg.
+
+    Arguments:
+        config -- a dictionary-like object with the needed configuration for the
+                  repo and remote involved
+        remote -- the name of the remote where the repo is
+        repo_name -- the name of the repository to prune
+    """
+    args = []
+    kwargs, env = get_common_args_and_env(config, remote, repo_name)
+
+    if prefix is not None:
+        kwargs['prefix'] = prefix
+
+    if 'check_first' in config:
+        kwargs['first'] = config['check_first']
+
+    if 'check_first' in config:
+        kwargs['last'] = config['check_last']
+
+    if config.get('dry_run', False):
+        kwargs['dry-run'] = True
+
+    if config.get('repository_only', False):
+        kwargs['repository-only'] = True
+
+    if config.get('archives_only', False):
+        kwargs['archives-only'] = True
+
+    if config.get('verify_data', False):
+        kwargs['verify_data'] = True
+
+    location = config['location']
+    args.append(os.path.expanduser(location + repo_name))
+
+    with execution_context(config):
+        print("Running borg check with:", repr(env), repr(args), repr(kwargs))
+        sh.borg.check(*args, _fg=True, _env=env, **kwargs)
 
 def extract(config):
     raise NotImplementedError

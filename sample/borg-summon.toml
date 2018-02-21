@@ -40,7 +40,8 @@ stats = true
         [backup.sources.home]
             paths = ["~", "/etc/"]
             sudo = true
-            passphrase = "wowmuchsecret" # Should be kept in separate file with
+            passphrase = "wowmuchsecret" # Should be kept in separate file, see
+                                         # bottom of this file for example
 
         [backup.sources.online]
             paths = ["/home/onlinebackup"]
@@ -75,13 +76,13 @@ stats = true
     [maintain.check]
         repository_only = false
         archives_only = false
-        check_last = 0
+        check_last = 2
         # prefixes = []
 
     [maintain.extract]
         repository_only = false
         archives_only = false
-        check_last = 0
+        check_last = 2
 
     [[maintain.repos]]
         remote = "local"
@@ -91,6 +92,8 @@ stats = true
         remote = "local"
         repo_name = "database"
         enable_check = false # defaults to true
+        passphrase = "this_is_a_secret" # Should be kept in separate file, see
+                                        # bottom of this file for example
 
     [[maintain.repos]]
         remote = "server"
